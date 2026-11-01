@@ -8,7 +8,7 @@
 <title>پنل مشاور | سپهر آرامش</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <style>
 /* ===== توکن‌های تم لاجورد (Lapis) از VibeFarsi ===== */
 :root{
@@ -329,15 +329,20 @@ li.rmw.off,span.rmw.off{opacity:.45;text-decoration:line-through}
 </style>
 </head>
 <body>
+<script>
+window.__errs=[];
+window.addEventListener("error",function(e){window.__errs.push((e.message||"خطای نامشخص")+(e.lineno?" (خط "+e.lineno+")":""));var b=document.getElementById("boot");if(b){b.hidden=false;b.textContent="خطا در اجرای صفحه: "+window.__errs[0]}});
+</script>
 <div class="wrap" id="wrap">
   <header class="brand">
-    <span class="plate"><img src="https://cdn.imgurl.ir/uploads/w51320_et_1s.png" alt="کلینیک سپهر آرامش" decoding="async"></span>
+    <span class="plate"><img src="https://cdn.imgurl.ir/uploads/w51320_et_1s.png" alt="کلینیک سپهر آرامش" decoding="async" onerror="this.style.display='none'"></span>
     <div class="brand-text"><b>کلینیک سپهر آرامش</b><span>پنل مشاور</span></div>
   </header>
+  <div class="err" id="boot" role="alert" hidden style="margin:0 0 12px"></div>
   <main>
     <section class="screen on" id="s-login"><div class="card" style="max-width:420px;margin:0 auto">
       <h1>ورود مشاور</h1>
-      <form id="lf">
+      <form id="lf" onsubmit="return false">
         <label for="u">نام کاربری</label><input id="u" dir="ltr" autocomplete="username" aria-describedby="le">
         <label for="p">رمز عبور</label><input id="p" type="password" dir="ltr" autocomplete="current-password" aria-describedby="le">
         <div class="err" id="le" role="alert"></div>
@@ -459,19 +464,21 @@ const F=[
 ["انعطاف‌پذیری",["عمل‌گرا و سنت‌گراست و روش‌های آشنا و آزموده را ترجیح می‌دهد.","ترکیبی از علاقه به تازگی و پایبندی به روش‌های آشنا دارد.","کنجکاو، خلاق و پذیرای تجربه‌ها و ایده‌های تازه است."]],
 ["توافق‌پذیری",["رقابت‌جو و صریح است، دیرتر اعتماد می‌کند و منافع خود را بر سازش مقدم می‌دارد.","میان همکاری با دیگران و پیگیری منافع خود تعادل دارد.","مهربان، همدل و همکار است و به هماهنگی با دیگران اهمیت می‌دهد."]],
 ["وظیفه‌شناسی",["انعطاف‌پذیر و بی‌قید است؛ در برنامه‌ریزی و پیگیری منظم کارها ممکن است دشواری داشته باشد.","در حد معمول منظم و هدفمند است.","منظم، قابل‌اعتماد و هدفمند است و تعهد و انضباط بالایی دارد."]]];
-let token=sessionStorage.getItem("tk")||"",rows=[],msqN=[1,2,3,4,5,6].map(i=>"مولفه "+fa(i));
+const mem={};
+const SS={get:k=>{try{return sessionStorage.getItem(k)}catch(e){return mem[k]||null}},set:(k,v)=>{try{sessionStorage.setItem(k,v)}catch(e){}mem[k]=v},del:k=>{try{sessionStorage.removeItem(k)}catch(e){}delete mem[k]}};
+let token=SS.get("tk")||"",rows=[],msqN=[1,2,3,4,5,6].map(i=>"مولفه "+fa(i));
 function show(id){document.querySelectorAll(".screen").forEach(s=>s.classList.toggle("on",s.id===id))}
 async function api(b){
   const r=await fetch(SCRIPT_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(b)});
   const t=await r.text();try{return JSON.parse(t)}catch(e){return{ok:false,error:t}}
 }
-function logout(){token="";sessionStorage.removeItem("tk");rows=[];$("p").value="";show("s-login")}
+function logout(){token="";SS.del("tk");rows=[];$("p").value="";show("s-login")}
 $("lf").onsubmit=async e=>{
   e.preventDefault();const b=$("lb");b.disabled=true;b.textContent="در حال ورود…";$("le").textContent="";["u","p"].forEach(i=>$(i).removeAttribute("aria-invalid"));
   try{
     const r=await api({action:"login",username:$("u").value.trim(),password:$("p").value});
     if(!r.ok)throw new Error(r.error==="locked"?"به‌دلیل تلاش‌های ناموفق، ورود تا ۱۰ دقیقه مسدود است.":"نام کاربری یا رمز عبور نادرست است.");
-    token=r.token;sessionStorage.setItem("tk",token);await load();
+    token=r.token;SS.set("tk",token);await load();
   }catch(x){["u","p"].forEach(i=>$(i).setAttribute("aria-invalid","true"));$("le").textContent=x.message.startsWith("Failed")||x.name==="TypeError"?"اتصال برقرار نشد. اینترنت را بررسی کنید.":x.message}
   b.disabled=false;b.textContent="ورود";
 };
@@ -726,7 +733,11 @@ window.addEventListener("beforeprint",fillPrint);
 window.addEventListener("afterprint",()=>{pall=false;document.body.classList.remove("rp");$("pa").innerHTML=""});
 $("pr").onclick=()=>{fillPrint();window.print()};
 $("dlg").addEventListener("click",e=>{if(e.target===$("dlg"))$("dlg").close()});
+window.__ok=1;
 if(token)load();
+</script>
+<script>
+setTimeout(function(){if(!window.__ok){var b=document.getElementById("boot");if(b){b.hidden=false;b.textContent="اسکریپت صفحه اجرا نشد"+(window.__errs[0]?": "+window.__errs[0]:". صفحه را با Ctrl+F5 دوباره باز کنید یا مرورگر دیگری امتحان کنید.")}}},1500);
 </script>
 </body>
 </html>
