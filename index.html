@@ -427,6 +427,7 @@ window.addEventListener("error",function(e){window.__errs.push((e.message||"خط
 
 <div class="pa" id="pa"></div>
 <script>
+(function(){
 const SCRIPT_URL="https://script.google.com/macros/s/AKfycbwe1ZUkX6EJbQlIvU-07guUYbtNeJ3NLlqaUF2MH8LJErReHJwTR3zXJbF8TKxCZPDf/exec";
 const $=id=>document.getElementById(id);
 const nf=new Intl.NumberFormat("fa-IR"),fa=n=>nf.format(n);
@@ -518,7 +519,7 @@ document.querySelector("thead").onclick=e=>{const h=e.target.closest("th[data-k]
 $("pg").onclick=e=>{const b=e.target.closest("[data-p]");if(b&&!b.disabled){pg+=+b.dataset.p;draw()}};
 $("rf").onclick=load;
 $("lo").onclick=logout;
-$("tb").onclick=e=>{const b=e.target.closest("[data-n]");if(b)open(rows.find(r=>r.n==b.dataset.n))};
+$("tb").onclick=e=>{const b=e.target.closest("[data-n]");if(b)openReport(rows.find(r=>r.n==b.dataset.n))};
 const P=(i,p)=>{const a=(-90+i*72)*Math.PI/180;return[Math.cos(a)*100*p,Math.sin(a)*100*p]};
 function radar(s){
   const ring=p=>`<polygon class="g" points="${F.map((_,i)=>P(i,p).join(",")).join(" ")}"${p==1?' style="fill:var(--foreground);fill-opacity:.03"':""}/>`;
@@ -680,7 +681,7 @@ function edit(on){
   $("dc").hidden=on;$("ed").hidden=!on;$("ac").hidden=on;if(on)$("cbar").hidden=true;else $("cbar").hidden=!cust;
   if(on){esrc="n";$("esrc").value="n";loadEd();$("es").disabled=false;$("te").focus();$("te").setSelectionRange(0,0);$("te").scrollTop=0}
 }
-function open(r){
+function openReport(r){
   cur=r;cust=false;edit(false);syncCust();$("hs").textContent="";paint();
   if(!$("dlg").open){$("dlg").showModal();document.body.style.overflow="hidden"}
 }
@@ -735,6 +736,7 @@ $("pr").onclick=()=>{fillPrint();window.print()};
 $("dlg").addEventListener("click",e=>{if(e.target===$("dlg"))$("dlg").close()});
 window.__ok=1;
 if(token)load();
+})();
 </script>
 <script>
 setTimeout(function(){if(!window.__ok){var b=document.getElementById("boot");if(b){b.hidden=false;b.textContent="اسکریپت صفحه اجرا نشد"+(window.__errs[0]?": "+window.__errs[0]:". صفحه را با Ctrl+F5 دوباره باز کنید یا مرورگر دیگری امتحان کنید.")}}},1500);
