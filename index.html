@@ -284,6 +284,23 @@ h2{font-size:16px;font-weight:600;margin:20px 0 4px}
   .pa .fc,.pa .charts,.pa .vd,.pa .ib,.pa .pf,.pa li{break-inside:avoid}
   .pa .vb{border-style:solid}
 }
+/* ===== شخصی‌سازی گزارش: حذف از چاپ و ویرایش هر بند ===== */
+.rc,.lb{display:none}
+.cust .rc,.cust .lb{display:inline-flex}
+.rmw{position:relative}
+.rc{position:absolute;inset-block-start:4px;inset-inline-end:4px;gap:4px;z-index:3}
+.rc button,.lb{min-width:28px;min-height:28px;padding:0 6px;font:inherit;font-size:13px;line-height:1;color:var(--foreground);background:var(--card);border:1px var(--line-style) var(--border);border-radius:var(--radius);cursor:pointer;align-items:center;justify-content:center}
+.rc button:hover,.lb:hover{border-color:var(--primary)}
+.lb{margin-inline-start:6px;min-width:22px;min-height:22px;font-size:11px}
+.cust div.rmw{outline:1px var(--line-style) var(--border);outline-offset:3px;margin-block:6px}
+div.rmw.off{opacity:.4}
+div.rmw.off::before{content:"حذف‌شده از چاپ";display:block;font-size:11px;font-weight:600;color:var(--warning)}
+li.rmw.off,span.rmw.off{opacity:.45;text-decoration:line-through}
+.cbar{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;justify-content:space-between;margin:0 0 12px;padding:8px 12px;font-size:12px;line-height:1.8;color:var(--muted-foreground);border:1px var(--line-style) var(--warning);border-radius:var(--radius)}
+.cbar[hidden]{display:none}
+.cbtn{display:inline-flex;align-items:center;gap:8px}
+.ie{margin:8px 0}
+.ie .acts{margin-top:8px}
 /* ===== رضایت شغلی (MSQ) ===== */
 .msq-g{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin:8px 0 12px}
 .mt{padding:8px 10px;border:1px var(--line-style) var(--border);border-radius:var(--radius);text-align:center}
@@ -390,15 +407,17 @@ h2{font-size:16px;font-weight:600;margin:20px 0 4px}
     </div></section>
   </main>
 </div>
-<dialog id="dlg" aria-labelledby="dt"><button class="x" id="x" type="button" aria-label="بستن"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button><div id="dc"></div>
+<dialog id="dlg" aria-labelledby="dt"><button class="x" id="x" type="button" aria-label="بستن"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button><div class="cbar" id="cbar" hidden><span>برای هر مورد، ✕ آن را از چاپ و PDF حذف می‌کند و ✎ همان بند را ویرایش می‌کند. تغییرها برای همین فرد در شیت ذخیره می‌شود و در چاپ دسته‌جمعی هم اعمال می‌شود.</span><span class="cbtn"><button class="ghost" id="cr" type="button">برگرداندن همه‌ی موارد حذف‌شده</button><span class="em" id="hs" role="status"></span></span></div>
+  <div id="dc"></div>
   <div id="ed" hidden>
     <h2>ویرایش تفسیر</h2>
+    <div class="sel-wrap" style="margin-bottom:8px"><select id="esrc" aria-label="کدام تفسیر"><option value="n">تفسیر نئو</option><option value="m">تفسیر رضایت شغلی (MSQ)</option><option value="a">تفسیر کلی (نئو + رضایت شغلی)</option></select><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></div>
     <p class="eh">متن تفسیر را مستقیم ویرایش کنید یا نظر خودتان را اضافه کنید. هر بخش در یک خط است؛ برای اینکه چینش گزارش و چاپ مرتب بماند، ابتدای خط‌ها (مثل «جمع‌بندی:»، «تحلیل فردی:»، «نقاط قوت:»، «توصیه:» و خط‌های «•») را نگه دارید. برای نظر شخصی خودتان یک خط جدید با «نظر مشاور:» بنویسید. «ثبت» که بزنید، همین متن ذخیره می‌شود و در گزارش و چاپ استفاده می‌شود.</p>
     <textarea class="te" id="te" aria-label="متن تفسیر" spellcheck="false"></textarea>
     <div class="em" id="em" role="status"></div>
     <div class="acts"><button class="btn" id="es" type="button">ثبت تفسیر</button><button class="ghost" id="eo" type="button">بازگشت به متن اولیه</button><button class="ghost" id="ec" type="button">انصراف</button></div>
   </div>
-  <div class="acts" id="ac"><button class="btn" id="pr" type="button">چاپ / ذخیره PDF</button><button class="ghost" id="eb" type="button">ویرایش تفسیر</button><button class="ghost" id="cl" type="button">بستن</button></div>
+  <div class="acts" id="ac"><button class="btn" id="pr" type="button">چاپ / ذخیره PDF</button><button class="ghost" id="eb" type="button">ویرایش تفسیر</button><button class="ghost" id="cb" type="button">شخصی‌سازی چاپ</button><button class="ghost" id="cl" type="button">بستن</button></div>
 </dialog>
 
 <div class="pa" id="pa"></div>
@@ -464,7 +483,7 @@ async function load(){
     const r=await api({action:"list",token});
     if(!r.ok){if(r.error==="auth"){logout();$("le").textContent="نشست منقضی شد. دوباره وارد شوید.";return}throw new Error(r.error)}
     msqN=(r.msq||[]).map((v,i)=>v||"مولفه "+fa(i+1));
-    rows=r.rows.map((x,i)=>{const o={t:x[0],name:x[1],age:Number(x[2]),ms:x[3],edu:x[4],s:x.slice(5,10).map(Number),n:i+1,orig:String(x[15]||""),ed:String(x[16]||""),m:[17,18,19,20,21,22].map(k=>x[k]===undefined||x[k]===""?"":Number(x[k])),mt:x[23]===undefined||x[23]===""?"":Number(x[23]),mi:String(x[24]||""),ma:String(x[25]||"")};recalc(o);return o}).reverse();
+    rows=r.rows.map((x,i)=>{const o={t:x[0],name:x[1],age:Number(x[2]),ms:x[3],edu:x[4],s:x.slice(5,10).map(Number),n:i+1,orig:String(x[15]||""),ed:String(x[16]||""),ed2:String(x[26]||""),ed3:String(x[27]||""),hide:(()=>{try{const h=JSON.parse(x[28]||"[]");return Array.isArray(h)?h:[]}catch(e){return[]}})(),m:[17,18,19,20,21,22].map(k=>x[k]===undefined||x[k]===""?"":Number(x[k])),mt:x[23]===undefined||x[23]===""?"":Number(x[23]),mi:String(x[24]||""),ma:String(x[25]||"")};recalc(o);return o}).reverse();
     loading=false;draw();
   }catch(e){loading=false;rows=[];draw();$("cnt").textContent="دریافت اطلاعات ناموفق بود."}
 }
@@ -483,7 +502,7 @@ function draw(){
   let h;
   if(loading)h=Array(5).fill('<tr class="sk">'+"<td><i></i></td>".repeat(8)+"</tr>").join("");
   else if(!v.length)h='<tr><td colspan="8"><div class="empty"><b>موردی یافت نشد</b><br>عبارت جستجو را تغییر دهید یا پس از ثبت پرسشنامه‌ها، بروزرسانی کنید.</div></td></tr>';
-  else h=v.slice((pg-1)*PS,pg*PS).map(r=>`<tr><td>${fa(r.n)}</td><td>${esc(r.name)}</td><td>${fa(r.age)}</td><td class="hm">${esc(r.ms)}</td><td class="hm">${esc(r.edu)}</td><td><span class="vb v-${r.vc}">${esc(r.vl)}</span>${r.it&&r.it.dup?'<span class="dup">تکراری</span>':""}${r.ed?'<span class="dup">ویرایش‌شده</span>':""}</td><td>${fmt(r.t)}</td><td><button class="btn" data-n="${r.n}" type="button">مشاهده نتایج</button></td></tr>`).join("");
+  else h=v.slice((pg-1)*PS,pg*PS).map(r=>`<tr><td>${fa(r.n)}</td><td>${esc(r.name)}</td><td>${fa(r.age)}</td><td class="hm">${esc(r.ms)}</td><td class="hm">${esc(r.edu)}</td><td><span class="vb v-${r.vc}">${esc(r.vl)}</span>${r.dup?'<span class="dup">تکراری</span>':""}${(r.ed||r.ed2||r.ed3)?'<span class="dup">ویرایش‌شده</span>':""}</td><td>${fmt(r.t)}</td><td><button class="btn" data-n="${r.n}" type="button">مشاهده نتایج</button></td></tr>`).join("");
   $("tb").innerHTML=h;
   $("pg").innerHTML=pages>1&&!loading?`<span>صفحه‌ی ${fa(pg)} از ${fa(pages)}</span><span><button class="ghost" data-p="-1" type="button"${pg<=1?" disabled":""}>قبلی</button><button class="ghost" data-p="1" type="button"${pg>=pages?" disabled":""}>بعدی</button></span>`:"";
 }
@@ -532,93 +551,177 @@ function profile(s){
   return`<div class="pf"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="نیمرخ شخصیتی">${zones}${cols}${grid}<polyline class="pl" points="${pts.map(p=>p.join(",")).join(" ")}"/>${dots}</svg>${tb}</div>`;
 }
 const NOTE_TXT="سطح‌بندی بر پایه نمره خام (۱۲ تا ۶۰): تا ۲۴ خیلی پایین، ۲۵ تا ۳۱ پایین، ۳۲ تا ۴۰ متوسط، ۴۱ تا ۴۸ بالا، ۴۹ و بالاتر خیلی بالا. تفاسیر کمکی‌اند و جایگزین ارزیابی و قضاوت بالینی مشاور نیستند.";
-// متن مؤثر تفسیر: اگر مشاور ویرایش کرده باشد همان، وگرنه تفسیر اولیه
-function recalc(r){const it=parseI(r.ed||r.orig),c=vcat(it&&it.verdict);r.it=it;r.vc=c[0];r.vl=c[1];r.vr=c[2]}
-function headHTML(r,screen){
-  return `<div class="pr-h"><span>کلینیک سپهر آرامش — گزارش پرسشنامه</span><span>${fmt(r.t)}</span></div>
-  <h1${screen?' id="dt"':""}>${esc(r.name)}</h1>
-  <div class="tags"><span>سن: ${fa(r.age)}</span><span>${esc(r.ms)}</span><span>${esc(r.edu)}</span>${r.ed?'<span class="ed-b">تفسیر ویرایش‌شده توسط مشاور</span>':""}</div>`;
+// سه تفسیر: n = نئو، m = رضایت شغلی (MSQ)، a = تفسیر کلی؛ نام فیلد در شیت و عنوان
+const SRCS={n:["neo","تفسیر نئو"],m:["msq","تفسیر رضایت شغلی (MSQ)"],a:["all","تفسیر کلی (نئو + رضایت شغلی)"]};
+const FACT_KEYS=["روان","برونگر","انعطاف","توافق","وظیفه"];
+const CLS={"نقاط ریسک":"risk","عبارت‌های حساس":"flag","توصیه":"rec","نقاط قوت":"good","پرسش‌های مصاحبه":"ask","تحلیل فردی":"an","نظر مشاور":"mine"};
+const clsOf=k=>CLS[k]!==undefined?CLS[k]:/جمع‌بندی|تحلیل/.test(k)?"an":/قوت/.test(k)?"good":/توصیه/.test(k)?"rec":/ریسک|هشدار/.test(k)?"risk":/توجه|حساس/.test(k)?"flag":/پرسش/.test(k)?"ask":"";
+const LISTK=/قوت|توجه|توصیه|پرسش|ریسک|حساس/;
+// متن مؤثر هر تفسیر: نسخه‌ی ویرایش‌شده‌ی مشاور اگر باشد، وگرنه متن اولیه
+const orig=(r,s)=>s==="n"?r.orig:s==="m"?r.mi:r.ma;
+const txt=(r,s)=>(s==="n"?r.ed:s==="m"?r.ed2:r.ed3)||orig(r,s)||"";
+// متن به بلوک‌ها: هر بلوک یک «عنوان: متن» یا یک خط «•» است؛ خط‌های بدون عنوان به بلوک قبلی می‌چسبند
+function parseB(t){
+  const B=[];
+  String(t||"").split("\n").forEach((l,i)=>{const x=l.trim();if(!x)return;
+    const bul=x.startsWith("•"),m=!bul&&x.match(/^([^:]{1,28}?):\s*([\s\S]*)$/);
+    if(bul||m||!B.length)B.push({s:i,e:i,raw:x,bul,k:m?m[1].trim():"",x:m?m[2].trim():bul?x.slice(1).trim():x});
+    else{const b=B[B.length-1];b.e=i;b.raw+="\n"+x;b.x+=" "+x}
+  });
+  return B;
 }
-// p1 = صفحه اول چاپ (تا پیش از شکست صفحه)، p2 = صفحه دوم چاپ
-function sections(r,tipOn){
-  const bars=r.s.map((v,i)=>`<div class="bl"><b>${F[i][0]}</b><span class="bv"><span>${fa(v)} از ${fa(60)}</span><span>${fa(pc(v))}٪</span><span>${BN[band(v)]}</span></span></div><div class="tr ${fit(i,v)}"><i style="width:${Math.max(pc(v),3)}%"></i></div>`).join("");
-  const charts=`<div class="charts"><div class="rw">${radar(r.s)}${tipOn?'<div class="tip" id="tip" hidden></div>':""}</div><div>${bars}</div></div>`;
-  const it=r.it;
-  if(it){
-    const cls={"نقاط ریسک":"risk","عبارت‌های حساس":"flag","توصیه":"rec","نقاط قوت":"good","پرسش‌های مصاحبه":"ask","تحلیل فردی":"an","نظر مشاور":"mine"};
-    const LK=["توصیه","عبارت‌های حساس","نقاط قوت","نقاط ریسک","پرسش‌های مصاحبه"];
-    const list=(k,s)=>{if(!LK.includes(k))return esc(s);const p=s.replace(/\.$/,"").split("؛").map(x=>x.trim()).filter(Boolean);return p.length>1?"<ul>"+p.map(x=>`<li>${esc(x)}</li>`).join("")+"</ul>":esc(s)};
-    const fi=t=>["روان","برونگر","انعطاف","توافق","وظیفه"].findIndex(w=>t.includes(w));
-    const fcs=it.factors.map(f=>`<div class="fc"><b>${esc(f.t)}</b><span class="lv ${fi(f.t)>=0?"t"+fit(fi(f.t),r.s[fi(f.t)]):""}">${esc(f.b)}</span><span class="sc">نمره ${esc(f.s)}</span><br>${esc(f.x)}</div>`).join("");
-    const an=it.other.filter(([k])=>k==="تحلیل فردی").map(([k,x])=>`<div class="ib an"><b>${esc(k)}</b>${esc(x)}</div>`).join("");
-    const oth=it.other.filter(([k])=>k!=="تحلیل فردی").map(([k,x])=>k?`<div class="ib ${cls[k]||""}"><b>${esc(k)}</b>${list(k,x)}</div>`:`<p class="note">${esc(x)}</p>`).join("");
-    const vd=it.verdict?`<div class="vd v-${r.vc}">جمع‌بندی: ${esc(it.verdict)}${it.dup?`<small>${esc(it.dup)}</small>`:""}</div>`:"";
-    return{
-      p1:`${vd}<h2>نیمرخ شخصیتی</h2>${profile(r.s)}${charts}${an}`,
-      p2:`<div class="pb">${fcs?`<h2>تفسیر عامل‌ها برای شغل نگهبان مسلح</h2>${fcs}`:""}</div>${oth}`};
+function recalc(r){
+  const B=parseB(txt(r,"n")),v=B.find(b=>b.k==="جمع‌بندی"),c=vcat(v&&v.x);
+  r.has=B.length>0;r.dup=B.some(b=>b.raw.startsWith("ثبت تکراری"));r.vc=c[0];r.vl=c[1];r.vr=c[2];
+}
+// پوشش هر مورد قابل‌حذف: در چاپ، موارد حذف‌شده اصلاً نمی‌آیند؛ روی صفحه با دکمه‌های حذف/ویرایش نمایش داده می‌شوند
+function W(c,id,html,o){
+  const off=c.h.has(id);
+  if(c.print)return off?"":html;
+  const ed=o&&o.b?`<button type="button" data-a="ed" data-s="${o.src}" data-i="${o.b.s}" data-j="${o.b.e}" title="ویرایش این بند" aria-label="ویرایش این بند">✎</button>`:"";
+  return`<div class="rmw${off?" off":""}" data-id="${esc(id)}"><span class="rc"><button type="button" data-a="tg" title="${off?"برگرداندن به چاپ":"حذف از چاپ و PDF"}" aria-label="${off?"برگرداندن به چاپ":"حذف از چاپ و PDF"}">${off?"＋":"✕"}</button>${ed}</span>${html}</div>`;
+}
+function inl(c,tag,id,html){
+  const off=c.h.has(id);
+  if(c.print)return off?"":`<${tag}>${html}</${tag}>`;
+  return`<${tag} class="rmw${off?" off":""}" data-id="${esc(id)}">${html}<button type="button" class="lb" data-a="tg" aria-label="${off?"برگرداندن به چاپ":"حذف از چاپ و PDF"}">${off?"＋":"✕"}</button></${tag}>`;
+}
+// یک بلوک «عنوان: متن» (با فهرست‌شدن بندهایی که با «؛» جدا شده‌اند)
+function kvBlock(c,src,b){
+  const id=`${src}|k:${b.k||"_"+b.s}`;
+  if(!b.k)return W(c,id,`<p class="note">${esc(b.x)}</p>`,{src,b});
+  let body=esc(b.x);
+  if(LISTK.test(b.k)){
+    const p=b.x.replace(/\.$/,"").split("؛").map(x=>x.trim()).filter(Boolean);
+    if(p.length>1){const li=p.map((x,j)=>inl(c,"li",`${id}|${j}`,esc(x))).join("");body=li?"<ul>"+li+"</ul>":""}
   }
-  const cards=r.s.map((v,i)=>`<div class="fc"><b>${F[i][0]}</b><span class="lv">${BN[band(v)]}</span><br>${F[i][1][lvl(v)]}</div>`).join("");
-  return{
-    p1:`<div class="vd v-none">تفسیر اختصاصی این فرد هنوز ثبت نشده است.<small>تا ثبت تفسیر، توضیح‌های عمومی زیر نمایش داده می‌شود.</small></div>
-    <h2>نیمرخ شخصیتی</h2>${profile(r.s)}${charts}`,
-    p2:`<div class="pb">${cards}</div>`};
+  return W(c,id,`<div class="ib ${clsOf(b.k)}"><b>${esc(b.k)}</b>${body}</div>`,{src,b});
 }
-// تفسیرهای MSQ و ترکیبی: خط‌های «عنوان: متن»
-function kvHTML(t){
-  const L=[];String(t||"").split("\n").forEach(l=>{l=l.trim();if(!l)return;const i=l.indexOf(":");
-    if(i>0&&i<28)L.push([l.slice(0,i).trim(),l.slice(i+1).trim()]);else if(L.length)L[L.length-1][1]+=" "+l;else L.push(["",l])});
-  const cl=k=>/جمع‌بندی/.test(k)||/تحلیل/.test(k)?"an":/قوت/.test(k)?"good":/توصیه/.test(k)?"rec":/ریسک|هشدار/.test(k)?"risk":/توجه|پرسش/.test(k)?"flag":"";
-  const li=(k,s)=>{if(!/قوت|توجه|توصیه|پرسش|ریسک/.test(k))return esc(s);const p=s.replace(/\.$/,"").split("؛").map(x=>x.trim()).filter(Boolean);return p.length>1?"<ul>"+p.map(x=>`<li>${esc(x)}</li>`).join("")+"</ul>":esc(s)};
-  return L.map(([k,x])=>k?`<div class="ib ${cl(k)}"><b>${esc(k)}</b>${li(k,x)}</div>`:`<p class="note">${esc(x)}</p>`).join("");
+function headHTML(c,screen){
+  const r=c.r;
+  return`${W(c,"hd|head",`<div class="pr-h"><span>کلینیک سپهر آرامش — گزارش پرسشنامه</span><span>${fmt(r.t)}</span></div>`)}
+  <h1${screen?' id="dt"':""}>${esc(r.name)}</h1>
+  <div class="tags">${inl(c,"span","tg|age","سن: "+fa(r.age))}${inl(c,"span","tg|ms",esc(r.ms))}${inl(c,"span","tg|edu",esc(r.edu))}${!c.print&&(r.ed||r.ed2||r.ed3)?'<span class="ed-b">تفسیر ویرایش‌شده توسط مشاور</span>':""}</div>`;
 }
-function msqHTML(r){
-  const has=r.m.some(v=>v!=="")||r.mt!==""||r.mi||r.ma;if(!has)return"";
-  const tile=(n,v,c)=>`<div class="mt${c?" "+c:""}"><span>${esc(n)}</span><b>${v===""?"—":fa(v)}</b></div>`;
-  const g=`<div class="msq-g">${msqN.map((n,i)=>tile(n,r.m[i])).join("")}${tile("نمره کلی"+(r.mt===""?"":" — "+(r.mt<=38?"ضعیف":r.mt<=57?"متوسط":"بسیار خوب")),r.mt,"tot")}</div>`;
-  const pend=t=>`<div class="ib nt"><b>${t}</b>تفسیر هنوز ثبت نشده است.</div>`;
-  return`<div class="pb msq"><h2>رضایت شغلی (پرسشنامه مینه‌سوتا — MSQ)</h2>${g}${r.mi?kvHTML(r.mi):pend("تفسیر رضایت شغلی")}
-  <h2>تفسیر کلی (ترکیب نتایج نئو و رضایت شغلی)</h2>${r.ma?kvHTML(r.ma):pend("تفسیر کلی")}</div>`;
+// p1 = صفحه اول چاپ، p2 = صفحه دوم چاپ
+function sections(c,tipOn){
+  const r=c.r,B=parseB(txt(r,"n"));
+  const bars=r.s.map((v,i)=>`<div class="bl"><b>${F[i][0]}</b><span class="bv"><span>${fa(v)} از ${fa(60)}</span><span>${fa(pc(v))}٪</span><span>${BN[band(v)]}</span></span></div><div class="tr ${fit(i,v)}"><i style="width:${Math.max(pc(v),3)}%"></i></div>`).join("");
+  const ca=W(c,"ch|radar",`<div class="rw">${radar(r.s)}${tipOn?'<div class="tip" id="tip" hidden></div>':""}</div>`),cb=W(c,"ch|bars",`<div>${bars}</div>`);
+  const charts=(ca||cb)?`<div class="charts">${ca}${cb}</div>`:"";
+  const prof=W(c,"ch|profile",`<h2>نیمرخ شخصیتی</h2>${profile(r.s)}`);
+  if(!B.length){
+    const cards=r.s.map((v,i)=>`<div class="fc"><b>${F[i][0]}</b><span class="lv">${BN[band(v)]}</span><br>${F[i][1][lvl(v)]}</div>`).join("");
+    return{p1:`<div class="vd v-none">تفسیر اختصاصی این فرد هنوز ثبت نشده است.<small>تا ثبت تفسیر، توضیح‌های عمومی زیر نمایش داده می‌شود.</small></div>${prof}${charts}`,
+      p2:`<div class="pb">${W(c,"n|generic",cards)}</div>`};
+  }
+  const vb=B.find(b=>b.k==="جمع‌بندی"),dup=B.find(b=>b.raw.startsWith("ثبت تکراری"));
+  const vd=(vb||dup)?W(c,"n|v",`<div class="vd v-${r.vc}">${vb?"جمع‌بندی: "+esc(vb.x):""}${dup?(vb?`<small>${esc(dup.raw)}</small>`:esc(dup.raw)):""}</div>`,{src:"n",b:vb||dup}):"";
+  const an=B.filter(b=>b.k==="تحلیل فردی").map(b=>kvBlock(c,"n",b)).join("");
+  const fcs=B.filter(b=>b.bul).map(b=>{
+    const m=b.raw.match(/^•\s*(.+?)\s+—\s+نمره\s+(\S+)\s+\((.+?)\):\s*([\s\S]*)$/);
+    const f=m?{t:m[1],s:m[2],b:m[3],x:m[4].replace(/\n/g," ")}:{t:"",s:"",b:"",x:b.x};
+    const k=FACT_KEYS.findIndex(w=>f.t.includes(w));
+    return W(c,`n|f:${k>=0?k:"_"+b.s}`,`<div class="fc"><b>${esc(f.t)}</b><span class="lv ${k>=0?"t"+fit(k,r.s[k]):""}">${esc(f.b)}</span>${f.s?`<span class="sc">نمره ${esc(f.s)}</span>`:""}<br>${esc(f.x)}</div>`,{src:"n",b})}).join("");
+  const oth=B.filter(b=>!b.bul&&b!==vb&&b!==dup&&b.k!=="تحلیل فردی").map(b=>kvBlock(c,"n",b)).join("");
+  return{p1:`${vd}${prof}${charts}${an}`,p2:(fcs?`<div class="pb"><h2>تفسیر عامل‌ها برای شغل نگهبان مسلح</h2>${fcs}</div>`:"")+oth};
 }
-let cur=null;
+// بخش رضایت شغلی (MSQ) و تفسیر کلی: صفحه‌ی سوم چاپ
+function msqHTML(c){
+  const r=c.r,tm=txt(r,"m"),ta=txt(r,"a");
+  if(!(r.m.some(v=>v!=="")||r.mt!==""||tm.trim()||ta.trim()))return"";
+  const tile=(n,v,k)=>`<div class="mt${k?" "+k:""}"><span>${esc(n)}</span><b>${v===""?"—":fa(v)}</b></div>`;
+  const lvl_=r.mt===""?"":" — "+(r.mt<=38?"ضعیف":r.mt<=57?"متوسط":"بسیار خوب");
+  const tiles=W(c,"mq|tiles",`<div class="msq-g">${msqN.map((n,i)=>tile(n,r.m[i])).join("")}${tile("نمره کلی"+lvl_,r.mt,"tot")}</div>`);
+  const pend=t=>c.print?"":`<div class="ib nt"><b>${t}</b>تفسیر هنوز ثبت نشده است.</div>`;
+  const part=(s,label)=>{const t=txt(r,s);return t.trim()?parseB(t).map(b=>kvBlock(c,s,b)).join(""):pend(label)};
+  const a1=tiles+part("m","تفسیر رضایت شغلی"),a2=part("a","تفسیر کلی");
+  if(!a1.trim()&&!a2.trim())return"";
+  return`<div class="pb msq">${a1.trim()?`<h2>رضایت شغلی (پرسشنامه مینه‌سوتا — MSQ)</h2>${a1}`:""}${a2.trim()?`<h2>تفسیر کلی (ترکیب نتایج نئو و رضایت شغلی)</h2>${a2}`:""}</div>`;
+}
+function reportHTML(r,print,screen){
+  const c={r,print,h:new Set(r.hide||[])},s=sections(c,!print);
+  return headHTML(c,screen)+s.p1+s.p2+msqHTML(c)+W(c,"nt|note",`<p class="note">${NOTE_TXT}</p>`);
+}
+let cur=null,cust=false,esrc="n",sq=Promise.resolve();
+function paint(){const k=$("dlg").scrollTop;$("dc").innerHTML=reportHTML(cur,false,true);$("dc").classList.toggle("cust",cust);tips(cur);$("dlg").scrollTop=k}
+function syncCust(){$("cbar").hidden=!cust;$("cb").textContent=cust?"پایان شخصی‌سازی":"شخصی‌سازی چاپ"; $("dc").classList.toggle("cust",cust)}
+function saveField(r,field,text){return api({action:"saveInterp",token,row:r.n+1,name:r.name,text,field})}
+function errMsg(res){return res.error==="mismatch"?"ردیف جدول تغییر کرده است؛ دیالوگ را ببندید، «بروزرسانی» را بزنید و دوباره تلاش کنید.":res.error==="unknown"||res.error==="bad"?"نسخه جدید اسکریپت هنوز در گوگل منتشر نشده است (Deploy → New version).":"ذخیره انجام نشد ("+res.error+")"}
+function authLost(){$("dlg").close();logout();$("le").textContent="نشست منقضی شد. دوباره وارد شوید."}
+// ذخیره‌ی فهرست موارد حذف‌شده برای همین فرد (صف‌بندی تا ترتیب ذخیره‌ها حفظ شود)
+function saveHide(){
+  const r=cur,st=$("hs");st.className="em";st.textContent="در حال ذخیره…";
+  sq=sq.then(()=>saveField(r,"hide",(r.hide&&r.hide.length)?JSON.stringify(r.hide):"")).then(res=>{
+    if(!res.ok){if(res.error==="auth"){authLost();return}st.className="em bad";st.textContent=errMsg(res)}else{st.textContent="ذخیره شد"}
+  }).catch(x=>{st.className="em bad";st.textContent=x.name==="TypeError"?"اتصال برقرار نشد؛ تغییر ذخیره نشد.":"ذخیره نشد"});
+}
+function toggle(id){const s=new Set(cur.hide||[]);s.has(id)?s.delete(id):s.add(id);cur.hide=[...s];paint();saveHide()}
+// ذخیره‌ی متن یک تفسیر؛ متن مساوی نسخه‌ی اولیه یعنی حذف نسخه‌ی ویرایشی
+async function saveText(r,s,text,em){
+  const t=text.replace(/\r/g,"").trim(),send=t===String(orig(r,s)||"").trim()?"":t;
+  em.className="em";em.textContent="در حال ثبت…";
+  try{
+    const res=await saveField(r,SRCS[s][0],send);
+    if(!res.ok){if(res.error==="auth"){authLost();return false}throw new Error(errMsg(res))}
+    if(s==="n")r.ed=send;else if(s==="m")r.ed2=send;else r.ed3=send;
+    recalc(r);draw();return true;
+  }catch(x){em.className="em bad";em.textContent=x.name==="TypeError"?"اتصال برقرار نشد. اینترنت را بررسی کنید.":x.message;return false}
+}
+function loadEd(){$("te").value=txt(cur,esrc);$("em").textContent="";$("em").className="em"}
 function edit(on){
-  $("dc").hidden=on;$("ed").hidden=!on;$("ac").hidden=on;
-  if(on){$("te").value=cur.ed||cur.orig||"";$("em").textContent="";$("em").className="em";$("es").disabled=false;$("te").focus();$("te").setSelectionRange(0,0);$("te").scrollTop=0}
+  $("dc").hidden=on;$("ed").hidden=!on;$("ac").hidden=on;if(on)$("cbar").hidden=true;else $("cbar").hidden=!cust;
+  if(on){esrc="n";$("esrc").value="n";loadEd();$("es").disabled=false;$("te").focus();$("te").setSelectionRange(0,0);$("te").scrollTop=0}
 }
 function open(r){
-  cur=r;edit(false);
-  const s=sections(r,true);
-  $("dc").innerHTML=headHTML(r,true)+s.p1+s.p2+msqHTML(r)+`<p class="note">${NOTE_TXT}</p>`;
-  tips(r);
+  cur=r;cust=false;edit(false);syncCust();$("hs").textContent="";paint();
   if(!$("dlg").open){$("dlg").showModal();document.body.style.overflow="hidden"}
 }
 $("eb").onclick=()=>edit(true);
-$("ec").onclick=()=>edit(false);
-$("eo").onclick=()=>{$("te").value=cur.orig||"";$("em").textContent="متن اولیه در کادر برگشت؛ برای اعمال، «ثبت تفسیر» را بزنید.";$("em").className="em"};
+$("ec").onclick=()=>{edit(false);paint()};
+$("esrc").onchange=()=>{const s=$("esrc").value;if($("te").value!==txt(cur,esrc)&&!confirm("تغییرات ذخیره‌نشده‌ی این متن از بین می‌رود. ادامه می‌دهید؟")){$("esrc").value=esrc;return}esrc=s;loadEd()};
+$("eo").onclick=()=>{$("te").value=orig(cur,esrc)||"";$("em").textContent="متن اولیه در کادر برگشت؛ برای اعمال، «ثبت تفسیر» را بزنید.";$("em").className="em"};
 $("es").onclick=async()=>{
-  const r=cur,em=$("em"),txt=$("te").value.replace(/\r/g,"").trim();
-  const send=txt===String(r.orig||"").trim()?"":txt; // مساوی متن اولیه = حذف نسخه ویرایشی
-  $("es").disabled=true;em.className="em";em.textContent="در حال ثبت…";
-  try{
-    const res=await api({action:"saveInterp",token,row:r.n+1,name:r.name,text:send});
-    if(!res.ok){
-      if(res.error==="auth"){$("dlg").close();logout();$("le").textContent="نشست منقضی شد. دوباره وارد شوید.";return}
-      throw new Error(res.error==="mismatch"?"ردیف جدول تغییر کرده است؛ دیالوگ را ببندید، «بروزرسانی» را بزنید و دوباره تلاش کنید.":res.error==="unknown"?"نسخه جدید اسکریپت هنوز در گوگل منتشر نشده است (Deploy → New version).":"ذخیره انجام نشد ("+res.error+")")
-    }
-    r.ed=send;recalc(r);draw();open(r);
-  }catch(x){em.className="em bad";em.textContent=x.name==="TypeError"?"اتصال برقرار نشد. اینترنت را بررسی کنید.":x.message;$("es").disabled=false}
+  $("es").disabled=true;
+  const ok=await saveText(cur,esrc,$("te").value,$("em"));
+  if(ok){cur.hide=(cur.hide||[]).filter(h=>!h.startsWith(esrc+"|"));saveHide();edit(false);paint()}
+  $("es").disabled=false;
 };
-// چاپ صفحه اول همه‌ی افراد فهرست فعلی، پشت‌سرهم
+$("cb").onclick=()=>{cust=!cust;syncCust()};
+$("cr").onclick=()=>{if(!(cur.hide&&cur.hide.length))return;cur.hide=[];paint();saveHide()};
+// ویرایش یک بند همان‌جا
+$("dc").addEventListener("click",e=>{
+  const b=e.target.closest("button[data-a]");if(!b||!cur)return;
+  const w=b.closest("[data-id]");if(!w)return;
+  if(b.dataset.a==="tg"){toggle(w.dataset.id);return}
+  const s=b.dataset.s,i=+b.dataset.i,j=+b.dataset.j,L=txt(cur,s).split("\n");
+  const box=document.createElement("div");box.className="ie";
+  box.innerHTML='<textarea class="te" style="min-height:96px" aria-label="ویرایش بند"></textarea><div class="em" role="status"></div><div class="acts"><button class="btn" type="button" data-q="ok">ثبت</button><button class="ghost" type="button" data-q="no">انصراف</button></div>';
+  const ta=box.querySelector("textarea");ta.value=L.slice(i,j+1).join("\n");
+  w.after(box);w.hidden=true;ta.focus();
+  box.onclick=async ev=>{
+    const q=ev.target.closest("[data-q]");if(!q)return;
+    if(q.dataset.q==="no"){box.remove();w.hidden=false;return}
+    const nv=ta.value.replace(/\r/g,"").trim(),nl=L.slice(0,i).concat(nv?nv.split("\n"):[],L.slice(j+1));
+    q.disabled=true;
+    if(await saveText(cur,s,nl.join("\n"),box.querySelector(".em"))){
+      const bid=w.dataset.id,n0=(cur.hide||[]).length;cur.hide=(cur.hide||[]).filter(h=>!h.startsWith(bid+"|"));
+      paint();if(cur.hide.length!==n0)saveHide();
+    }else q.disabled=false;
+  };
+});
+// چاپ صفحه اول همه‌ی افراد فهرست فعلی، پشت‌سرهم (با رعایت موارد حذف‌شده‌ی هر نفر)
 let pall=false;
 function printAll(){
   const v=view();if(!v.length)return;
-  $("pa").innerHTML=v.map(r=>`<section class="pp">${headHTML(r,false)}${sections(r,false).p1}<p class="note">${NOTE_TXT}</p></section>`).join("");
+  $("pa").innerHTML=v.map(r=>{const c={r,print:true,h:new Set(r.hide||[])};return`<section class="pp">${headHTML(c,false)}${sections(c,false).p1}${W(c,"nt|note",`<p class="note">${NOTE_TXT}</p>`)}</section>`}).join("");
   pall=true;document.body.classList.add("rp");window.print();
 }
 $("pall").onclick=printAll;
 $("cl").onclick=$("x").onclick=()=>$("dlg").close();
 $("dlg").addEventListener("close",()=>{document.body.style.overflow=""});
 // چاپ گزارش: محتوای دیالوگ در یک ظرف جدا کپی می‌شود تا صفحه‌بندی A4 درست انجام شود
-function fillPrint(){if(pall)return;const on=$("dlg").open;$("pa").innerHTML=on?$("dc").innerHTML:"";document.body.classList.toggle("rp",on)}
+function fillPrint(){if(pall)return;const on=$("dlg").open&&cur;$("pa").innerHTML=on?reportHTML(cur,true,false):"";document.body.classList.toggle("rp",on)}
 window.addEventListener("beforeprint",fillPrint);
 window.addEventListener("afterprint",()=>{pall=false;document.body.classList.remove("rp");$("pa").innerHTML=""});
 $("pr").onclick=()=>{fillPrint();window.print()};
